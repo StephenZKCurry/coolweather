@@ -1,6 +1,7 @@
 package com.coolweather.android.Fragment;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.coolweather.android.Activity.WeatherActivity;
 import com.coolweather.android.Bean.City;
 import com.coolweather.android.Bean.Country;
 import com.coolweather.android.Bean.Province;
@@ -63,7 +65,7 @@ public class ChooseAreaFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
+    public void onActivityCreated(final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         queryProvinces(); // 初始化，加载省级数据
         bt_back.setOnClickListener(new View.OnClickListener() {
@@ -87,6 +89,13 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == Common.LEVEL_CITY) {
                     selectedCity = cities.get(position);
                     queryCountries();
+                } else if (currentLevel == Common.LEVEL_COUNTRY) {
+                    selectedCountry = countries.get(position);
+                    String weatherId = selectedCountry.getWeatherId();
+                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                    intent.putExtra("weatherId", weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
