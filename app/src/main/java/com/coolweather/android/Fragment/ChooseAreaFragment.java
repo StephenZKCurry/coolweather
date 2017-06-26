@@ -14,10 +14,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.coolweather.android.Activity.MainActivity;
 import com.coolweather.android.Activity.WeatherActivity;
 import com.coolweather.android.Bean.City;
 import com.coolweather.android.Bean.Country;
 import com.coolweather.android.Bean.Province;
+import com.coolweather.android.Bean.Weather;
 import com.coolweather.android.R;
 import com.coolweather.android.Util.Common;
 import com.coolweather.android.Util.HttpUtil;
@@ -92,10 +94,19 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == Common.LEVEL_COUNTRY) {
                     selectedCountry = countries.get(position);
                     String weatherId = selectedCountry.getWeatherId();
-                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
-                    intent.putExtra("weatherId", weatherId);
-                    startActivity(intent);
-                    getActivity().finish();
+                    if (getActivity() instanceof MainActivity) {
+                        // 如果Fragmrnt在MainActivity中，则跳转到WeatherActivity
+                        Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                        intent.putExtra("weatherId", weatherId);
+                        startActivity(intent);
+                        getActivity().finish();
+                    } else if (getActivity() instanceof WeatherActivity) {
+                        // 如果Fragmrnt在WeatherActivity中，则不需要跳转，关闭滑动菜单，请求新地点的天气
+                        WeatherActivity activity = (WeatherActivity) getActivity();
+                        activity.drawerLayout.closeDrawers();
+                        activity.refreshLayout.setRefreshing(true);
+                        activity.requestWeather(weatherId);
+                    }
                 }
             }
         });
