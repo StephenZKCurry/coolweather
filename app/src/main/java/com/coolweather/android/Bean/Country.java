@@ -1,13 +1,15 @@
 package com.coolweather.android.Bean;
 
+import org.litepal.crud.DataSupport;
+
 /**
  * 县实体类
  */
 
-public class Country {
+public class Country extends DataSupport {
     private int id;
     private String countryName; // 县名称
-    private int weatherId; // 县对应的天气id
+    private String weatherId; // 县对应的天气id
     private int cityId; // 县所属的市id
 
     public int getCityId() {
@@ -26,11 +28,11 @@ public class Country {
         this.countryName = countryName;
     }
 
-    public int getWeatherId() {
+    public String getWeatherId() {
         return weatherId;
     }
 
-    public void setWeatherId(int weatherId) {
+    public void setWeatherId(String weatherId) {
         this.weatherId = weatherId;
     }
 
