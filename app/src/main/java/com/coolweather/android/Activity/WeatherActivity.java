@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.coolweather.android.Bean.Weather;
 import com.coolweather.android.R;
+import com.coolweather.android.Service.AutoUpdateService;
 import com.coolweather.android.Util.HttpUtil;
 import com.coolweather.android.Util.JsonParse;
 
@@ -48,7 +49,7 @@ public class WeatherActivity extends AppCompatActivity {
     private TextView tv_comfort;
     private TextView tv_wash;
     private TextView tv_sport;
-
+    private String mWeatherId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,18 +103,17 @@ public class WeatherActivity extends AppCompatActivity {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
         String weatherText = sp.getString("weather", null);
         String bingPic = sp.getString("bingPic", null);
-        final String weatherId;
         if (weatherText != null) {
             // 有缓存时直接解析天气数据
             Weather weather = JsonParse.handleWeatherResponse(weatherText);
-            weatherId = weather.getBasic().getId();
+            mWeatherId = weather.getBasic().getId();
             showWeather(weather);
         } else {
             // 无缓存时去服务器请求天气数据
             scrollView.setVisibility(View.INVISIBLE); // 没有数据时先隐藏布局
             Intent intent = getIntent();
-            weatherId = intent.getStringExtra("weatherId");
-            requestWeather(weatherId);
+            mWeatherId = intent.getStringExtra("weatherId");
+            requestWeather(mWeatherId);
         }
         if (bingPic != null) {
             Glide.with(WeatherActivity.this)
@@ -125,7 +125,7 @@ public class WeatherActivity extends AppCompatActivity {
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                requestWeather(weatherId);
+                requestWeather(mWeatherId);
             }
         });
     }
@@ -135,7 +135,7 @@ public class WeatherActivity extends AppCompatActivity {
      *
      * @param weatherId
      */
-    public void requestWeather(String weatherId) {
+    public void requestWeather(final String weatherId) {
         String weatherUrl = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=e8660117e7094167b2394467c528eaf2";
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
@@ -151,6 +151,7 @@ public class WeatherActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                mWeatherId = weatherId;
                 final String responseText = response.body().string();
                 final Weather weather = JsonParse.handleWeatherResponse(responseText);
                 runOnUiThread(new Runnable() {
@@ -162,6 +163,8 @@ public class WeatherActivity extends AppCompatActivity {
                             editor.putString("weather", responseText);
                             editor.apply();
                             showWeather(weather);
+                            Intent intent = new Intent(WeatherActivity.this, AutoUpdateService.class);
+                            startService(intent);
                         } else {
                             Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_LONG).show();
                         }
